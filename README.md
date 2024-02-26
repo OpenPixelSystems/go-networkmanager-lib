@@ -14,7 +14,7 @@ setIPMode(): Sets the IP mode for the specified network interface. It uses the v
 refresh_nmcli(): Refreshes the network connection using the nmcli command-line tool. It brings up the "Wired connection 1" connection using the nmcli connection up command. It also retrieves the output of the ifconfig command for the specified network interface. 
 **important** note is that the name of the network interface has to be checked with the "nmcli connection show" command. That way u can link the interface name to the nmcli connection name.
 
-#Requirements
+# Requirements
 
 go version >1.16
 
@@ -22,7 +22,7 @@ The following packages are required to use the ipaddressing package:
 - gonetworkmanager
 - dbus
 
-#usage
+# usage
 
 ```
 go run .
