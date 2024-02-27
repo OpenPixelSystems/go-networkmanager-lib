@@ -1,4 +1,4 @@
-package ethInterfacing
+package network
 
 import (
 	"encoding/binary"
@@ -11,11 +11,11 @@ import (
 )
 
 const (
-	ip_addr           = "10.0.3.30" // IP address you want to set
-	defgateway        = "10.0.0.1"  // Gateway you want to set
-	yourInterfaceName = "eth0"      // Interface name you want to use
-	prefix_nr         = 20          // Prefix number
-	ip_mode           = "manual"    // Mode you want to set
+	ip_addr          = "10.0.3.30" // IP address you want to set
+	defgateway       = "10.0.0.1"  // Gateway you want to set
+	EthInterfaceName = "eth0"      // Interface name you want to use
+	prefix_nr        = 20          // Prefix number
+	ip_mode          = "manual"    // Mode you want to set
 
 	connectionSection      = "connection"
 	connectionSectionID    = "id"
@@ -63,7 +63,7 @@ func Get_interface_settings() (error, string, string, string) {
 	var dev_inf_name string
 	for _, device := range devices {
 		interfaceName, _ := device.GetPropertyInterface()
-		if interfaceName == yourInterfaceName { // Change to the interface name you want to use
+		if interfaceName == EthInterfaceName { // Change to the interface name you want to use
 			selectedDevice = device
 			dev_inf_name = interfaceName
 			break
@@ -326,7 +326,7 @@ func Refresh_nmcli() (error, string) {
 		return err, ""
 	}
 
-	cmd = exec.Command("ifconfig", yourInterfaceName)
+	cmd = exec.Command("ifconfig", EthInterfaceName)
 	output, err = cmd.CombinedOutput()
 	if err != nil {
 		fmt.Println("Error running nmcli:", err)

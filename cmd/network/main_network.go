@@ -4,29 +4,29 @@ import (
 	"log"
 	"os"
 
-	"openpixelsystems.org/go-networkmanager-lib/ethInterfacing"
+	"github.com/OpenPixelSystems/go-networkmanager-lib/network"
 )
 
 func Setup_EthInterface() (error, string) {
-	err := ethInterfacing.SetIPAddr()
+	err := network.SetIPAddr()
 	if err != nil {
 		log.Fatal(err)
 		return err, ""
 	}
 
-	err = ethInterfacing.SetIPMode()
+	err = network.SetIPMode()
 	if err != nil {
 		log.Fatal(err)
 		return err, ""
 	}
 
-	err = ethInterfacing.SetDefaultGateway()
+	err = network.SetDefaultGateway()
 	if err != nil {
 		log.Fatal(err)
 		return err, ""
 	}
 
-	err, stroutput := ethInterfacing.Refresh_nmcli()
+	err, stroutput := network.Refresh_nmcli()
 	if err != nil {
 		log.Fatal(err)
 		return err, ""
@@ -43,7 +43,7 @@ func main() {
 	}
 	log.Print(strout)
 
-	err, ethface, ethaddr, ethgateway := ethInterfacing.Get_interface_settings()
+	err, ethface, ethaddr, ethgateway := network.Get_interface_settings()
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)

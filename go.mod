@@ -1,4 +1,4 @@
-module openpixelsystems.org/go-networkmanager-lib
+module github.com/OpenPixelSystems/go-networkmanager-lib
 
 go 1.19
 

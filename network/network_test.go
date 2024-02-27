@@ -1,4 +1,4 @@
-package ethInterfacing
+package network
 
 import (
 	"testing"
@@ -23,9 +23,9 @@ func (suite *ethInterfacingTestSuite) TestSetIPAddr() {
 func (suite *ethInterfacingTestSuite) TestGetInterfaceSettings() {
 	err, ethface, ethaddr, ethgateway := Get_interface_settings()
 	assert.Equal(suite.T(), nil, err, "get_original_interface_setting() should return nil on succesfull")
-	assert.Equal(suite.T(), yourInterfaceName, ethface, "get_original_interface_setting() should return yourInterfaceName")
-	assert.Equal(suite.T(), ip_addr, ethaddr, "get_original_interface_setting() should return ip_addr")
-	assert.Equal(suite.T(), defgateway, ethgateway, "get_original_interface_setting() should return gateway")
+	assert.Equal(suite.T(), EthInterfaceName, ethface, "get_original_interface_setting() should return"+EthInterfaceName)
+	assert.Equal(suite.T(), ip_addr, ethaddr, "get_original_interface_setting() should return"+ip_addr)
+	assert.Equal(suite.T(), defgateway, ethgateway, "get_original_interface_setting() should return gateway"+defgateway)
 }
 
 // Test SetIPMode
@@ -40,8 +40,8 @@ func (suite *ethInterfacingTestSuite) TestRefreshNmcli() {
 	err, stroutput := Refresh_nmcli()
 	assert.Equal(suite.T(), nil, err, "Refresh_nmcli() should return nil on succesfull")
 	assert.NotEqual(suite.T(), "", stroutput, "Refresh_nmcli() should return a non-empty string")
-	assert.Contains(suite.T(), stroutput, ip_addr, "Refresh_nmcli() should return a string containing ip_addr")
-	assert.Contains(suite.T(), stroutput, yourInterfaceName, "Refresh_nmcli() should return a string containing yourInterfaceName")
+	assert.Contains(suite.T(), stroutput, ip_addr, "Refresh_nmcli() should return a string containing ip_addr: "+ip_addr)
+	assert.Contains(suite.T(), stroutput, EthInterfaceName, "Refresh_nmcli() should return a string containing yourInterfaceName: "+EthInterfaceName)
 }
 
 // Test SetDefaultGateway
