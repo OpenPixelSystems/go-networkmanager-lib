@@ -11,11 +11,11 @@ import (
 )
 
 const (
-	ip_addr           = "192.168.3.43" // IP address you want to set
-	defgateway        = "192.168.3.1"  // Gateway you want to set
-	yourInterfaceName = "eth0"         // Interface name you want to use
-	prefix_nr         = 24             // Prefix number
-	ip_mode           = "manual"       // Mode you want to set
+	ip_addr           = "10.0.3.30" // IP address you want to set
+	defgateway        = "10.0.0.1"  // Gateway you want to set
+	yourInterfaceName = "eth0"      // Interface name you want to use
+	prefix_nr         = 20          // Prefix number
+	ip_mode           = "manual"    // Mode you want to set
 
 	connectionSection      = "connection"
 	connectionSectionID    = "id"
@@ -25,6 +25,7 @@ const (
 	ip4SectionPrefix       = "prefix"
 	ip4SectionMethod       = "method"
 	ip4SectionNeverDefault = "never-default"
+	ip4SectionGateway      = "gateway"
 	ip6Section             = "ipv6"
 	ip6SectionMethod       = "method"
 	connectionID           = "Wired connection 1"
@@ -41,72 +42,133 @@ func IpAddrToDecimal(ipAddr string) uint32 {
 	return reversed
 }
 
-func Get_original_interface_setting() error {
+func Get_interface_settings() (error, string, string, string) {
 	log.Print("getting original interface settings")
 	// Create a new instance of gonetworkmanager
 	nm, err := gonetworkmanager.NewNetworkManager()
 	if err != nil {
 		fmt.Println(err.Error())
-		return err
+		return err, "", "", ""
 	}
 
 	// Get the list of all network devices
 	devices, err := nm.GetDevices()
 	if err != nil {
 		fmt.Println(err.Error())
-		return err
+		return err, "", "", ""
 	}
 
 	// Find the device with the specified interface name
 	var selectedDevice gonetworkmanager.Device
+	var dev_inf_name string
 	for _, device := range devices {
 		interfaceName, _ := device.GetPropertyInterface()
 		if interfaceName == yourInterfaceName { // Change to the interface name you want to use
 			selectedDevice = device
+			dev_inf_name = interfaceName
 			break
 		}
 	}
 
 	if selectedDevice == nil {
 		fmt.Println("Selected device not found")
-		return err
+		return err, "", "", ""
 	}
 
 	// Get the original IPv4 settings of the selected device
-	originalIPv4Settings, err := selectedDevice.GetPropertyIP4Config()
+	IPv4Settings, err := selectedDevice.GetPropertyIP4Config()
 	if err != nil {
 		fmt.Println("Failed to get original IPv4 settings:", err)
-		return err
+		return err, "", "", ""
 	}
 
 	// Extract IPv4 addresses
-	originalIPv4Addresses, err := originalIPv4Settings.GetPropertyAddressData()
+	IPv4Addresses, err := IPv4Settings.GetPropertyAddressData()
 	if err != nil {
 		fmt.Println("Failed to get original IPv4 addresses:", err)
-		return err
+		return err, "", "", ""
 	}
 
-	// Extract the first IPv4 address and its prefix (assuming there's at least one address)
-	var originalIPv4Address string
-	var originalIPv4Prefix uint
-	if len(originalIPv4Addresses) > 0 {
-		originalIPv4Address = originalIPv4Addresses[0].Address
-		originalIPv4Prefix = uint(originalIPv4Addresses[0].Prefix)
-	} else {
-		fmt.Println("No IPv4 addresses found in the original settings")
-		return err
-	}
-
-	// Get the original gateway
-	originalGateway, err := originalIPv4Settings.GetPropertyGateway()
+	// Extract the gateway
+	IPv4Gateway, err := IPv4Settings.GetPropertyGateway()
 	if err != nil {
 		fmt.Println("Failed to get original gateway:", err)
+		return err, "", "", ""
+	}
+
+	IPv4Address := IPv4Addresses[0].Address
+	IPv4Prefix := IPv4Addresses[0].Prefix
+
+	fmt.Printf("Got interface name: %s\n", dev_inf_name)
+	fmt.Printf("Got IPv4 address: %s/%d\n", IPv4Address, IPv4Prefix)
+	fmt.Printf("Got gateway: %s\n\n", IPv4Gateway)
+	return nil, dev_inf_name, IPv4Address, IPv4Gateway
+}
+
+func SetDefaultGateway() error {
+	log.Print("setting default gateway")
+
+	// Create a new instance of gonetworkmanager.Settings
+	settings, err := gonetworkmanager.NewSettings()
+	if err != nil {
+		fmt.Print("could not get new settings")
 		return err
 	}
 
-	fmt.Printf("Original IPv4 address: %s/%d\n", originalIPv4Address, originalIPv4Prefix)
-	fmt.Printf("Original gateway: %s\n\n", originalGateway)
-	return nil
+	// Get the list of all connections
+	currentConnections, err := settings.ListConnections()
+	if err != nil {
+		fmt.Print("could not get settings connections list")
+		return err
+	}
+
+	// Loop through the connections and find the one with the specified ID
+	for i := range currentConnections {
+		connectionSettings, err := currentConnections[i].GetSettings()
+		if err != nil {
+			fmt.Print("could not get settings of connection")
+			return err
+		}
+
+		currentConnectionSection := connectionSettings[connectionSection]
+		if currentConnectionSection[connectionSectionID] == connectionID {
+			addressData := make([]map[string]interface{}, 1)
+			addressData[0] = make(map[string]interface{})
+			addressData[0][ip4SectionPrefix] = 24
+			addressData[0][ip4SectionGateway] = defgateway
+
+			// order defined by network manager
+			addresses := make([][]uint32, 1)
+			addresses = connectionSettings[ip4Section][ip4SectionAddresses].([][]uint32)
+
+			// Gateway
+			addresses[0][2] = IpAddrToDecimal(defgateway)
+
+			addressArray := make([][]uint32, 1)
+			addressArray[0] = addresses[0]
+
+			connectionSettings[ip4Section][ip4SectionAddresses] = addressArray
+			connectionSettings[ip6Section] = make(map[string]interface{})
+			connectionSettings[ip6Section][ip6SectionMethod] = "ignore"
+
+			err = currentConnections[i].Update(connectionSettings)
+			if err != nil {
+				log.Print("failed to update connection")
+				return err
+			}
+
+			err = currentConnections[i].Save()
+			if err != nil {
+				log.Print("failed to save setting")
+				return err
+			}
+
+			log.Print("connection reloaded")
+			return nil
+		}
+	}
+
+	return fmt.Errorf("connection not found in setDefaultGateway")
 }
 
 func SetIPAddr() error {
@@ -176,9 +238,7 @@ func SetIPAddr() error {
 		}
 	}
 
-	err = fmt.Errorf("connection not found in setIPAddr")
-	log.Print("connection not found in setIPAddr")
-	return err
+	return fmt.Errorf("connection not found in setIPAddr")
 }
 
 func SetIPMode() error {
@@ -224,7 +284,7 @@ func SetIPMode() error {
 			addressArray[0] = addresses
 
 			connectionSettings[ip4Section][ip4SectionAddresses] = addressArray
-			connectionSettings[ip4Section][ip4SectionNeverDefault] = true
+			connectionSettings[ip4Section][ip4SectionNeverDefault] = false
 			connectionSettings[ip6Section] = make(map[string]interface{})
 			connectionSettings[ip6Section][ip6SectionMethod] = "ignore"
 
@@ -253,9 +313,7 @@ func SetIPMode() error {
 		}
 	}
 
-	err = fmt.Errorf("connection not found in setIPMode")
-	log.Print("connection not found in setIPMode")
-	return err
+	return fmt.Errorf("connection not found in setIPMode")
 }
 
 func Refresh_nmcli() (error, string) {
