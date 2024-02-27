@@ -258,21 +258,22 @@ func SetIPMode() error {
 	return err
 }
 
-func Refresh_nmcli() error {
+func Refresh_nmcli() (error, string) {
 	log.Print("\nRefreshing nmcli connection on the interface..")
 	cmd := exec.Command("/bin/sh", "-c", "/usr/bin/nmcli connection up \""+connectionID+"\"")
 
 	output, err := cmd.CombinedOutput()
 	if cmd == nil {
 		fmt.Println("failed to execute command")
+		return err, ""
 	}
 
 	cmd = exec.Command("ifconfig", yourInterfaceName)
 	output, err = cmd.CombinedOutput()
 	if err != nil {
 		fmt.Println("Error running nmcli:", err)
-		return err
+		return err, ""
 	}
 	fmt.Println(string(output))
-	return nil
+	return nil, string(output)
 }

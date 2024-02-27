@@ -23,10 +23,18 @@ The following packages are required to use the ipaddressing package:
 - dbus
 
 # usage
-
+**GO**
 ```
+go mod init openpixelsystems.org/go-networkmanager-lib
 go run .
 ```
+
+**Makefile**
+```
+make all
+make tests
+```
+
 
 ## License
 
