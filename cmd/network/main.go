@@ -7,20 +7,27 @@ import (
 	"github.com/OpenPixelSystems/go-networkmanager-lib/network"
 )
 
+const (
+	ip_addr    = "10.0.3.30" // IP address you want to set
+	defgateway = "10.0.0.1"  // Gateway you want to set
+	prefix_nr  = 20          // Prefix number
+	ip_mode    = "manual"    // Mode you want to set
+)
+
 func Setup_EthInterface() (error, string) {
-	err := network.SetIPAddr()
+	err := network.SetIPAddr(ip_addr, prefix_nr, defgateway)
 	if err != nil {
 		log.Fatal(err)
 		return err, ""
 	}
 
-	err = network.SetIPMode()
+	err = network.SetIPMode(ip_mode)
 	if err != nil {
 		log.Fatal(err)
 		return err, ""
 	}
 
-	err = network.SetDefaultGateway()
+	err = network.SetDefaultGateway(defgateway)
 	if err != nil {
 		log.Fatal(err)
 		return err, ""
