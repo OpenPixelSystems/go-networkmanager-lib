@@ -3,27 +3,29 @@
 The ipaddressing is a Golang package and it is responsible for handling IP addressing functionality.
 It sets the IP address, gateway, and other network settings for a specific interface by using the **gonetworkmanager** package to interact with the network manager (nmcli). 
 
-ipAddrToDecimal(ipAddr string) uint32: Takes an IP address as a string and converts it to its decimal representation. It returns the decimal representation as a uint32 value.
+**func SetupEthInterface(eth_interface_name string, connection_id string)** 
+    - This function sets the network interface with the specified name. 
+    - The connectionID, which is bound to the interface described via nmcli.
+**important** note is that the name of the network interface has to be checked with the "nmcli connection show" command. That way u can link the interface name to the nmcli connection name. (e.g. 'Eth0' is bound to 'Wired connection 1' by the nmcli -> So you pass SetupEthInterface("eth0", "Wired connection 1"))
 
-get_original_interface_setting(): Retrieves the original settings of the network interface.
+**func IpAddrToDecimal(ipAddr string) uint32** Takes an IP address as a string and converts it to its decimal representation. It returns the decimal representation as a uint32 value.
 
-setIPAddr(): Sets the IP address and gateway for the specified network interface. It uses the values defined in the constants ip_addr and defgateway to set the IP address and gateway respectively. 
+**func Get_interface_settings() (error, string, string, string)**
+Retrieves the EthInterface name, IP address and gateway of the configured network interface.    
 
-setIPMode(): Sets the IP mode for the specified network interface. It uses the value defined in the constant ip_mode to set the IP mode. 
+**func SetIPAddr(ip_addr string, prefix_nr uint32, defgateway_addr string) error**
+Sets the IP address, prefixnr and gateway address for the setup network interface.
 
-SetDefaultGateway(): Sets the default gateway for the specified network interface. It uses the value defined in the constant defgateway to set the default gateway.
+**func SetIPMode(ip_mode string) error** 
+Sets the IP mode of the setup interface. It can be either "manual" or "auto".
 
-refresh_nmcli(): Refreshes the network connection using the nmcli command-line tool. It brings up the "Wired connection 1" connection using the nmcli connection up command. It also retrieves the output of the ifconfig command for the specified network interface. 
+**func SetDefaultGateway(defgateway_addr string) error**
+Sets the default gateway for the specified network interface. 
 
-**important** note is that the name of the network interface has to be checked with the "nmcli connection show" command. That way u can link the interface name to the nmcli connection name.
+**func Refresh_nmcli() (error, string)** Refreshes the network connection by executing the nmcli command-line tool. It brings up/updates the **connectionID** setup via the "SetupEthInterface" using the nmcli connection up command. It also retrieves the output of the ifconfig command for the specified network interface for an overview of the network settings.
 
-# Configuration (constants)
-Inside network.go file, the following constants are defined:
-- ip_addr: The IP address to be set for the network interface.
-- defgateway: The gateway to be set for the network interface. 
-- ip_mode: The IP mode to be set for the network interface. It can be either "manual" or "auto".
-- InterfaceName: The name of the network interface to be used. (e.g. "eth0" or "enp0s3")
-- prefix_nr: The prefix number to be set for the network interface. (e.g. 24, 20, 16, 8, etc.)
+# Example
+inside [/cmd/network/main_network.go](cmd/network/main.go) you can find an example of how to use the ipaddressing package.
 
 # Requirements
 
