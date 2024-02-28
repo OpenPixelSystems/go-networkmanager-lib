@@ -1,4 +1,4 @@
-# ipaddresing Go Module
+# Network Go Module
 
 The ipaddressing is a Golang package and it is responsible for handling IP addressing functionality.
 It sets the IP address, gateway, and other network settings for a specific interface by using the **gonetworkmanager** package to interact with the network manager (nmcli). 
@@ -6,6 +6,7 @@ It sets the IP address, gateway, and other network settings for a specific inter
 **func SetupEthInterface(eth_interface_name string, connection_id string)** 
     - This function sets the network interface with the specified name. 
     - The connectionID, which is bound to the interface described via nmcli.
+
 **important** note is that the name of the network interface has to be checked with the "nmcli connection show" command. That way u can link the interface name to the nmcli connection name. (e.g. 'Eth0' is bound to 'Wired connection 1' by the nmcli -> So you pass SetupEthInterface("eth0", "Wired connection 1"))
 
 **func IpAddrToDecimal(ipAddr string) uint32** Takes an IP address as a string and converts it to its decimal representation. It returns the decimal representation as a uint32 value.
