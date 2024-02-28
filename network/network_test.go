@@ -11,10 +11,17 @@ type ethInterfacingTestSuite struct {
 	suite.Suite
 }
 
+const (
+	ip_addr    = "10.0.3.30" // IP address you want to set
+	defgateway = "10.0.0.1"  // Gateway you want to set
+	prefix_nr  = 20          // Prefix number
+	ip_mode    = "manual"    // Mode you want to set
+)
+
 // Test SetIPAddr
 // - err should be nil on succesfull
 func (suite *ethInterfacingTestSuite) TestSetIPAddr() {
-	err := SetIPAddr()
+	err := SetIPAddr(ip_addr, prefix_nr, defgateway)
 	assert.Equal(suite.T(), nil, err, "SetIPAddr() should return nil on succesfull")
 }
 
@@ -31,7 +38,7 @@ func (suite *ethInterfacingTestSuite) TestGetInterfaceSettings() {
 // Test SetIPMode
 // - err should be nil on succesfull
 func (suite *ethInterfacingTestSuite) TestSetIpMode() {
-	err := SetIPMode()
+	err := SetIPMode(ip_mode)
 	assert.Equal(suite.T(), nil, err, "SetIpMode() should return nil on succesfull")
 }
 

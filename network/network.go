@@ -11,12 +11,6 @@ import (
 )
 
 const (
-	ip_addr          = "10.0.3.30" // IP address you want to set
-	defgateway       = "10.0.0.1"  // Gateway you want to set
-	EthInterfaceName = "eth0"      // Interface name you want to use
-	prefix_nr        = 20          // Prefix number
-	ip_mode          = "manual"    // Mode you want to set
-
 	connectionSection      = "connection"
 	connectionSectionID    = "id"
 	ip4Section             = "ipv4"
@@ -28,8 +22,15 @@ const (
 	ip4SectionGateway      = "gateway"
 	ip6Section             = "ipv6"
 	ip6SectionMethod       = "method"
-	connectionID           = "Wired connection 1"
 )
+
+var EthInterfaceName string
+var connectionID string
+
+func SetupEthInterface(eth_interface_name string, connection_id string) {
+	EthInterfaceName = eth_interface_name
+	connectionID = connection_id
+}
 
 func IpAddrToDecimal(ipAddr string) uint32 {
 	ip := net.ParseIP(ipAddr)
@@ -105,7 +106,7 @@ func Get_interface_settings() (error, string, string, string) {
 	return nil, dev_inf_name, IPv4Address, IPv4Gateway
 }
 
-func SetDefaultGateway() error {
+func SetDefaultGateway(defgateway_addr string) error {
 	log.Print("setting default gateway")
 
 	// Create a new instance of gonetworkmanager.Settings
@@ -134,15 +135,14 @@ func SetDefaultGateway() error {
 		if currentConnectionSection[connectionSectionID] == connectionID {
 			addressData := make([]map[string]interface{}, 1)
 			addressData[0] = make(map[string]interface{})
-			addressData[0][ip4SectionPrefix] = 24
-			addressData[0][ip4SectionGateway] = defgateway
+			addressData[0][ip4SectionGateway] = defgateway_addr
 
 			// order defined by network manager
 			addresses := make([][]uint32, 1)
 			addresses = connectionSettings[ip4Section][ip4SectionAddresses].([][]uint32)
 
 			// Gateway
-			addresses[0][2] = IpAddrToDecimal(defgateway)
+			addresses[0][2] = IpAddrToDecimal(defgateway_addr)
 
 			addressArray := make([][]uint32, 1)
 			addressArray[0] = addresses[0]
@@ -171,7 +171,7 @@ func SetDefaultGateway() error {
 	return fmt.Errorf("connection not found in setDefaultGateway")
 }
 
-func SetIPAddr() error {
+func SetIPAddr(ip_addr string, prefix_nr uint32, defgateway_addr string) error {
 	log.Print("setting ip address")
 
 	// Create a new instance of gonetworkmanager.Settings
@@ -209,7 +209,7 @@ func SetIPAddr() error {
 			addresses[0] = IpAddrToDecimal(ip_addr)
 			addresses[1] = prefix_nr
 			// Gateway
-			addresses[2] = IpAddrToDecimal(defgateway)
+			addresses[2] = IpAddrToDecimal(defgateway_addr)
 
 			addressArray := make([][]uint32, 1)
 			addressArray[0] = addresses
@@ -233,7 +233,7 @@ func SetIPAddr() error {
 			}
 
 			fmt.Printf("New IPv4 address set successfully to: %s\n", ip_addr)
-			fmt.Printf("New gateway set successfully to: %s\n\n", defgateway)
+			fmt.Printf("New gateway set successfully to: %s\n\n", defgateway_addr)
 			return nil
 		}
 	}
@@ -241,9 +241,12 @@ func SetIPAddr() error {
 	return fmt.Errorf("connection not found in setIPAddr")
 }
 
-func SetIPMode() error {
+func SetIPMode(ip_mode string) error {
 	log.Print("setting ip mode")
 
+	if ip_mode != "auto" && ip_mode != "manual" {
+		return fmt.Errorf("invalid ip mode")
+	}
 	// Create a new instance of gonetworkmanager.Settings
 	settings, err := gonetworkmanager.NewSettings()
 	if err != nil {
@@ -269,24 +272,6 @@ func SetIPMode() error {
 		currentConnectionSection := connectionSettings[connectionSection]
 		if currentConnectionSection[connectionSectionID] == connectionID {
 			connectionSettings[ip4Section][ip4SectionMethod] = ip_mode
-			connectionSettings[ip6Section] = make(map[string]interface{})
-			connectionSettings[ip6Section][ip6SectionMethod] = "ignore"
-
-			// order defined by network manager
-			addresses := make([]uint32, 3)
-			// IP addr
-			addresses[0] = IpAddrToDecimal(ip_addr)
-			addresses[1] = prefix_nr
-			// Gateway
-			addresses[2] = IpAddrToDecimal(defgateway)
-
-			addressArray := make([][]uint32, 1)
-			addressArray[0] = addresses
-
-			connectionSettings[ip4Section][ip4SectionAddresses] = addressArray
-			connectionSettings[ip4Section][ip4SectionNeverDefault] = false
-			connectionSettings[ip6Section] = make(map[string]interface{})
-			connectionSettings[ip6Section][ip6SectionMethod] = "ignore"
 
 			// Update the connection settings
 			err = currentConnections[i].Update(connectionSettings)
