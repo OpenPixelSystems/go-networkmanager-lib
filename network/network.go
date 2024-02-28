@@ -273,6 +273,12 @@ func SetIPMode(ip_mode string) error {
 		if currentConnectionSection[connectionSectionID] == connectionID {
 			connectionSettings[ip4Section][ip4SectionMethod] = ip_mode
 
+			connectionSettings[ip6Section] = make(map[string]interface{})
+			connectionSettings[ip6Section][ip6SectionMethod] = "ignore"
+			connectionSettings[ip4Section][ip4SectionNeverDefault] = false
+			connectionSettings[ip6Section] = make(map[string]interface{})
+			connectionSettings[ip6Section][ip6SectionMethod] = "ignore"
+
 			// Update the connection settings
 			err = currentConnections[i].Update(connectionSettings)
 			if err != nil {
