@@ -1,4 +1,4 @@
-module github.com/OpenPixelSystems/go-networkmanager-lib
+module github.com/openpixelsystems/go-networkmanager-lib
 
 go 1.19
 
@@ -13,3 +13,5 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/openpixelsystems/go-networkmanager-lib => ./
