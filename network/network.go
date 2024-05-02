@@ -64,6 +64,7 @@ func NewNetwork() *Network {
 
 func (network *Network) InitializeNetworkState(networkAdapter, connectionID string) {
 	network.connectionID = connectionID
+	network.CleanupNetworkAdapter(networkAdapter)
 	network.State.Mode, _ = network.RetrieveMode(networkAdapter)
 	network.State.IPAddress, _ = network.RetrieveIPAddress(networkAdapter)
 	network.State.SubnetMask, _ = network.RetrieveSubnetMask(networkAdapter)
@@ -620,22 +621,30 @@ func (network *Network) PropagateNetworkSettings(networkAdapter string) error {
 				return err
 			}
 
-			cmdStr := fmt.Sprintf("/usr/bin/nmcli connection up \"%s\"", network.connectionID)
-			cmd := network.Exec.Command("/bin/sh", "-c", cmdStr)
-			if cmd == nil {
-				return fmt.Errorf("failed to execute command")
-			}
-
-			out, err := cmd.Output()
+			err = network.CleanupNetworkAdapter(networkAdapter)
 			if err != nil {
 				return err
 			}
 
-			log.Print(string(out))
 			return nil
 		}
 	}
 
 	log.Print("connection not found!")
 	return fmt.Errorf("connection not found")
+}
+
+func (network *Network) CleanupNetworkAdapter(networkAdapter string) error {
+	cmdStr := fmt.Sprintf("/usr/bin/nmcli connection up \"%s\"", network.connectionID)
+	cmd := network.Exec.Command("/bin/sh", "-c", cmdStr)
+	if cmd == nil {
+		return fmt.Errorf("failed to execute command %s", cmdStr)
+	}
+	out, err := cmd.Output()
+	if err != nil {
+		return err
+	}
+	log.Print(string(out))
+
+	return nil
 }
