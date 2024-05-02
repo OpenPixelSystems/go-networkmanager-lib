@@ -25,7 +25,6 @@ const (
 	ip4NameServer          = "dns"
 	ip6Section             = "ipv6"
 	ip6SectionMethod       = "method"
-	connectionID           = "Wired connection 1"
 
 	DNS1Offset = 0
 	DNS2Offset = 1
@@ -41,6 +40,7 @@ type NetworkState struct {
 }
 
 type Network struct {
+	connectionID   string
 	NetworkManager interfaces.NetworkManager
 	Exec           interfaces.Exec
 	Settings       gonetworkmanager.Settings
@@ -62,7 +62,8 @@ func NewNetwork() *Network {
 	return network
 }
 
-func (network *Network) InitializeNetworkState(networkAdapter string) {
+func (network *Network) InitializeNetworkState(networkAdapter, connectionID string) {
+	network.connectionID = connectionID
 	network.State.Mode, _ = network.RetrieveMode(networkAdapter)
 	network.State.IPAddress, _ = network.RetrieveIPAddress(networkAdapter)
 	network.State.SubnetMask, _ = network.RetrieveSubnetMask(networkAdapter)
@@ -517,7 +518,7 @@ func (network *Network) PropagateNetworkSettings(networkAdapter string) error {
 		}
 
 		currentConnectionSection := connectionSettings[connectionSection]
-		if currentConnectionSection[connectionSectionID] == connectionID {
+		if currentConnectionSection[connectionSectionID] == network.connectionID {
 			log.Print(connectionSettings)
 
 			// Set IP mode
@@ -619,7 +620,8 @@ func (network *Network) PropagateNetworkSettings(networkAdapter string) error {
 				return err
 			}
 
-			cmd := network.Exec.Command("/bin/sh", "-c", "/usr/bin/nmcli connection up \"Wired connection 1\"")
+			cmdStr := fmt.Sprintf("/usr/bin/nmcli connection up \"%s\"", network.connectionID)
+			cmd := network.Exec.Command("/bin/sh", "-c", cmdStr)
 			if cmd == nil {
 				return fmt.Errorf("failed to execute command")
 			}
