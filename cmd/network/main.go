@@ -14,5 +14,5 @@ func main() {
 
 	networkAdapter := flag.String("adapter", "", "The network adapter to use")
 	flag.Parse()
-	network.InitializeNetworkState(*networkAdapter)
+	network.InitializeNetworkState(*networkAdapter, "Connection ID")
 }
